@@ -1,0 +1,68 @@
+---
+interface Props {
+  items: string[];
+}
+
+const { items } = Astro.props;
+---
+
+<!-- Decorative: the same items appear as real content further down the page -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee__track">
+    {
+      [0, 1].map(() => (
+        <div class="marquee__group">
+          {items.map((item) => (
+            <>
+              <span>{item}</span>
+              <span class="marquee__dot">●</span>
+            </>
+          ))}
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .marquee {
+    border-block: var(--bw) solid var(--c-line);
+    background: var(--c-inverse-bg);
+    color: var(--c-inverse-fg);
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: var(--ff-display);
+    font-size: clamp(1.5rem, 4cqi, 3rem);
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    padding: var(--s-3) 0;
+  }
+  /* Two identical groups translated by -50% give a seamless loop */
+  .marquee__track {
+    display: flex;
+    width: max-content;
+    animation: marquee 45s linear infinite;
+  }
+  .marquee:hover .marquee__track {
+    animation-play-state: paused;
+  }
+  .marquee__group {
+    display: flex;
+  }
+  .marquee__group span {
+    padding-inline: 0.5em;
+  }
+  .marquee__dot {
+    color: var(--c-inverse-accent);
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee__track {
+      animation: none;
+    }
+  }
+</style>

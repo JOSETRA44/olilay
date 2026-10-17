@@ -1,0 +1,168 @@
+---
+import { site } from '../../config/site';
+import type { Locale } from '../../i18n/config';
+import { path, productPath, type Alternates } from '../../i18n/routes';
+import { useTranslations } from '../../i18n/ui';
+import { getProducts } from '../../lib/content';
+import LangSwitch from '../ui/LangSwitch.astro';
+
+interface Props {
+  locale: Locale;
+  alternates: Alternates;
+}
+
+const { locale, alternates } = Astro.props;
+const t = useTranslations(locale);
+const products = await getProducts(locale);
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <p class="footer__giant" aria-hidden="true">O<span>·</span>li<span>·</span>lay</p>
+
+  <nav class="footer__cols" aria-label={t.a11y.footerNav}>
+    <div class="footer__col">
+      <h2>{t.footer.navigation}</h2>
+      <ul>
+        <li><a href={path('home', locale)}>↳ {t.nav.home}</a></li>
+        <li><a href={path('services', locale)}>↳ {t.nav.services}</a></li>
+        <li><a href={path('products', locale)}>↳ {t.nav.products}</a></li>
+        <li><a href={path('company', locale)}>↳ {t.nav.company}</a></li>
+      </ul>
+    </div>
+    <div class="footer__col">
+      <h2>{t.footer.products}</h2>
+      <ul>
+        {
+          products.map((p) => (
+            <li>
+              <a href={productPath(p.data.slug, locale)}>↳ {p.data.name}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div class="footer__col">
+      <h2>{t.footer.contact}</h2>
+      <ul>
+        <li><a href={path('contact', locale)}>↳ {t.nav.contact}</a></li>
+        <li><a href={`mailto:${site.email}`}>↳ {site.email}</a></li>
+        {
+          site.social.map((s) => (
+            <li>
+              <a href={s.href} rel="noopener me" target="_blank">
+                ↳ {s.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div class="footer__col">
+      <h2>{t.footer.legal}</h2>
+      <ul>
+        <li><a href={path('privacy', locale)}>↳ {t.footer.privacy}</a></li>
+        <li><a href={path('legal', locale)}>↳ {t.footer.legalNotice}</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="footer__bottom">
+    <span>© {year} {site.name}. {t.footer.rights}.</span>
+    <span>{t.footer.tagline}</span>
+    <LangSwitch locale={locale} alternates={alternates} class="footer__lang" />
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--c-inverse-bg);
+    color: var(--c-inverse-fg);
+    padding: var(--s-7) var(--pad-x) var(--s-4);
+    display: grid;
+    gap: var(--s-7);
+  }
+
+  .footer__giant {
+    font-family: var(--ff-display);
+    font-size: clamp(3rem, 16.5cqi, 28rem);
+    line-height: 0.78;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    text-align: center;
+    user-select: none;
+  }
+  .footer__giant span {
+    color: var(--c-inverse-accent);
+  }
+
+  .footer__cols {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-6) var(--s-5);
+    border-top: var(--bw) solid currentColor;
+    padding-top: var(--s-5);
+  }
+  @media (min-width: 48rem) {
+    .footer__cols {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .footer__col h2 {
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono-sm);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: var(--s-3);
+    opacity: 0.6;
+  }
+  .footer__col ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s-2);
+  }
+  .footer__col li {
+    font-family: var(--ff-mono);
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    overflow-wrap: anywhere;
+  }
+  .footer__col a {
+    display: inline-block;
+    padding-block: var(--s-1);
+  }
+  .footer__col a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+
+  .footer__bottom {
+    display: grid;
+    gap: var(--s-3);
+    padding-top: var(--s-4);
+    border-top: var(--bw) solid currentColor;
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono-sm);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+  }
+  .footer__bottom > span {
+    opacity: 0.7;
+  }
+  @media (min-width: 48rem) {
+    .footer__bottom {
+      grid-template-columns: repeat(3, 1fr);
+      align-items: center;
+    }
+    .footer__bottom > span:nth-child(2) {
+      text-align: center;
+    }
+    .footer__bottom :global(.footer__lang) {
+      justify-self: end;
+    }
+  }
+</style>

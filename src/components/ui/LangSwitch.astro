@@ -1,0 +1,55 @@
+---
+import { locales, localeMeta, type Locale } from '../../i18n/config';
+import type { Alternates } from '../../i18n/routes';
+import { useTranslations } from '../../i18n/ui';
+
+interface Props {
+  locale: Locale;
+  alternates: Alternates;
+  class?: string;
+}
+
+const { locale, alternates, class: className } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<nav class:list={['lang', className]} aria-label={t.a11y.language}>
+  {
+    locales.map((l) => (
+      <a
+        href={alternates[l]}
+        hreflang={localeMeta[l].htmlLang}
+        lang={localeMeta[l].htmlLang}
+        aria-current={l === locale ? 'true' : undefined}
+      >
+        {localeMeta[l].short}
+        <span class="u-sr"> — {localeMeta[l].label}</span>
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .lang {
+    display: flex;
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    letter-spacing: var(--tracking-mono);
+  }
+  .lang a {
+    padding: var(--s-1) var(--s-2);
+    opacity: 0.75;
+    transition: opacity var(--dur-fast);
+  }
+  .lang a + a {
+    border-left: var(--bw) solid currentColor;
+  }
+  .lang a:hover,
+  .lang a[aria-current] {
+    opacity: 1;
+  }
+  .lang a[aria-current] {
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+</style>

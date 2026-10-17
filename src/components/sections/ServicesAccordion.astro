@@ -1,0 +1,204 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { Locale } from '../../i18n/config';
+import { path } from '../../i18n/routes';
+import { useTranslations } from '../../i18n/ui';
+
+interface Props {
+  locale: Locale;
+  services: CollectionEntry<'services'>[];
+}
+
+const { locale, services } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<!-- Exclusive accordion via <details name>: keyboard and screen-reader support without JS -->
+<ul class="services">
+  {
+    services.map((s, i) => (
+      <li>
+        <details class="services__item" name="services">
+          <summary class="services__trigger">
+            <span class="services__num">{String(i + 1).padStart(2, '0')}</span>
+            <span class="services__name">{s.data.title}</span>
+            <span class="services__arrow" aria-hidden="true" />
+          </summary>
+          <div class="services__panel">
+            <p class="services__desc">{s.data.summary}</p>
+            <ul class="services__sublist" aria-label={t.services.includes}>
+              {s.data.includes.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+            <a class="services__cta" href={`${path('services', locale)}#${s.data.key}`}>
+              {t.services.ask}
+            </a>
+          </div>
+        </details>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .services {
+    list-style: none;
+    padding: 0;
+    border-bottom: var(--bw) solid var(--c-line);
+  }
+  .services > li + li {
+    border-top: var(--bw) solid var(--c-line);
+  }
+
+  .services__item {
+    transition:
+      background var(--dur-base),
+      color var(--dur-base);
+  }
+  .services__item[open] {
+    background: var(--c-inverse-bg);
+    color: var(--c-inverse-fg);
+  }
+
+  .services__trigger {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--s-4);
+    padding: var(--s-5) var(--pad-x);
+    cursor: pointer;
+    list-style: none;
+    transition:
+      background var(--dur-base),
+      color var(--dur-base);
+  }
+  .services__trigger::-webkit-details-marker {
+    display: none;
+  }
+  .services__item:not([open]) .services__trigger:hover {
+    background: var(--c-inverse-bg);
+    color: var(--c-inverse-fg);
+  }
+  .services__trigger:focus-visible {
+    outline-offset: -4px;
+  }
+
+  .services__num {
+    font-family: var(--ff-mono);
+    font-size: clamp(1rem, 2cqi, 1.5rem);
+    font-weight: 500;
+    transition: color var(--dur-base);
+  }
+  .services__item[open] .services__num,
+  .services__trigger:hover .services__num {
+    color: var(--c-inverse-accent);
+  }
+
+  .services__name {
+    font-family: var(--ff-display);
+    font-size: clamp(1.75rem, 6.5cqi, 5.5rem);
+    line-height: 0.9;
+    letter-spacing: var(--tracking-display);
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
+  }
+
+  /* "+" that rotates into "×" */
+  .services__arrow {
+    position: relative;
+    width: clamp(1rem, 2cqi, 1.75rem);
+    aspect-ratio: 1;
+    transition: rotate var(--dur-base) var(--ease-out);
+  }
+  .services__arrow::before,
+  .services__arrow::after {
+    content: '';
+    position: absolute;
+    inset: 50% 0 auto;
+    height: 2px;
+    margin-top: -1px;
+    background: currentColor;
+  }
+  .services__arrow::after {
+    rotate: 90deg;
+  }
+  .services__item[open] .services__arrow {
+    rotate: 45deg;
+  }
+
+  /* Animated open/close where ::details-content is supported; instant elsewhere */
+  .services__item::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size 400ms var(--ease-out),
+      content-visibility 400ms allow-discrete;
+  }
+  .services__item[open]::details-content {
+    block-size: auto;
+  }
+
+  .services__panel {
+    display: grid;
+    gap: var(--s-5);
+    padding: var(--s-4) var(--pad-x) var(--s-6);
+    border-top: var(--bw) solid currentColor;
+  }
+  @media (min-width: 64rem) {
+    .services__panel {
+      grid-template-columns: 1.4fr 1fr auto;
+      align-items: end;
+      gap: var(--s-6);
+    }
+  }
+
+  .services__desc {
+    font-size: clamp(0.9375rem, 1.4cqi, 1.125rem);
+    line-height: 1.5;
+    max-width: 52ch;
+  }
+  .services__sublist {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s-2) var(--s-4);
+  }
+  .services__sublist li {
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+  }
+  .services__sublist li::before {
+    content: '↳ ';
+    opacity: 0.5;
+  }
+
+  .services__cta {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: var(--s-3) var(--s-4);
+    border: var(--bw-thick) solid currentColor;
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    transition:
+      background var(--dur-fast),
+      color var(--dur-fast),
+      border-color var(--dur-fast);
+  }
+  .services__cta::after {
+    content: '→';
+  }
+  .services__cta:hover {
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+    border-color: var(--c-accent);
+  }
+</style>

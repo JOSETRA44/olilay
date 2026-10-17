@@ -1,0 +1,87 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'a'> & {
+  href: string;
+  variant?: 'solid' | 'outline' | 'inverse';
+  icon?: 'arrow' | 'external' | 'none';
+};
+
+const { href, variant = 'outline', icon = 'arrow', class: className, ...rest } = Astro.props;
+const external = icon === 'external';
+---
+
+<a
+  class:list={['btn', `btn--${variant}`, className]}
+  href={href}
+  data-icon={icon}
+  {...external ? { target: '_blank', rel: 'noopener' } : {}}
+  {...rest}
+>
+  <slot />
+</a>
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    min-height: 2.75rem;
+    padding: var(--s-3) var(--s-4);
+    border: var(--bw-thick) solid var(--c-line);
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    transition:
+      background var(--dur-fast),
+      color var(--dur-fast),
+      border-color var(--dur-fast);
+  }
+  .btn[data-icon='arrow']::after {
+    content: '→';
+    transition: translate var(--dur-base) var(--ease-out);
+  }
+  .btn[data-icon='external']::after {
+    content: '↗';
+    transition: translate var(--dur-base) var(--ease-out);
+  }
+  .btn[data-icon='arrow']:hover::after {
+    translate: 0.25rem 0;
+  }
+  .btn[data-icon='external']:hover::after {
+    translate: 0.15rem -0.15rem;
+  }
+
+  .btn--outline {
+    background: var(--c-bg);
+    color: var(--c-fg);
+  }
+  .btn--outline:hover {
+    background: var(--c-fg);
+    color: var(--c-bg);
+  }
+
+  .btn--solid {
+    background: var(--c-fg);
+    color: var(--c-bg);
+  }
+  .btn--solid:hover {
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+    border-color: var(--c-accent);
+  }
+
+  /* For use on inverse (ink) surfaces */
+  .btn--inverse {
+    border-color: var(--c-inverse-fg);
+    color: var(--c-inverse-fg);
+  }
+  .btn--inverse:hover {
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+    border-color: var(--c-accent);
+  }
+</style>

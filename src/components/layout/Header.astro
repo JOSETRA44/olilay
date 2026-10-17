@@ -1,0 +1,133 @@
+---
+import type { Locale } from '../../i18n/config';
+import { path, type Alternates } from '../../i18n/routes';
+import { useTranslations } from '../../i18n/ui';
+import LangSwitch from '../ui/LangSwitch.astro';
+import ThemeToggle from '../ui/ThemeToggle.astro';
+import MobileMenu from './MobileMenu.astro';
+import { navItems } from './nav';
+
+interface Props {
+  locale: Locale;
+  alternates: Alternates;
+}
+
+const { locale, alternates } = Astro.props;
+const t = useTranslations(locale);
+const current = Astro.url.pathname;
+const items = navItems(locale, current);
+---
+
+<header class="topbar">
+  <a class="topbar__brand" href={path('home', locale)}>Olilay</a>
+
+  <nav class="topbar__nav" aria-label={t.a11y.mainNav}>
+    {
+      items.map((item) => (
+        <a href={item.href} aria-current={item.current ? 'page' : undefined}>
+          {item.label}
+        </a>
+      ))
+    }
+  </nav>
+
+  <div class="topbar__tools">
+    <LangSwitch locale={locale} alternates={alternates} class="topbar__lang" />
+    <ThemeToggle locale={locale} />
+    <button class="topbar__menu" type="button" popovertarget="mobile-menu" aria-label={t.a11y.openMenu}>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </button>
+  </div>
+</header>
+
+<MobileMenu locale={locale} alternates={alternates} items={items} />
+
+<style>
+  /* Inverts against whatever is underneath, as in the reference */
+  .topbar {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 100;
+    height: var(--header-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    padding: 0 var(--pad-x);
+    color: white;
+    mix-blend-mode: difference;
+    pointer-events: none;
+  }
+  .topbar > * {
+    pointer-events: auto;
+  }
+
+  .topbar__brand {
+    font-family: var(--ff-display);
+    font-size: 1.125rem;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+  .topbar__brand::after {
+    content: ' ●';
+    color: var(--lime);
+  }
+
+  .topbar__nav {
+    display: none;
+    gap: var(--s-5);
+  }
+  .topbar__nav a {
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+    padding-block: var(--s-2);
+  }
+  .topbar__nav a::before {
+    content: '↳ ';
+    opacity: 0.5;
+  }
+  .topbar__nav a:hover,
+  .topbar__nav a[aria-current] {
+    text-decoration: underline;
+    text-decoration-thickness: var(--bw-thick);
+    text-underline-offset: 0.4em;
+  }
+
+  .topbar__tools {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+  }
+  .topbar__tools :global(.topbar__lang) {
+    display: none;
+  }
+
+  .topbar__menu {
+    display: grid;
+    align-content: center;
+    gap: 5px;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.5rem;
+    border: var(--bw) solid currentColor;
+  }
+  .topbar__menu span {
+    height: 2px;
+    background: currentColor;
+  }
+
+  @media (min-width: 48rem) {
+    .topbar__nav {
+      display: flex;
+    }
+    .topbar__tools :global(.topbar__lang) {
+      display: flex;
+    }
+    .topbar__menu {
+      display: none;
+    }
+  }
+</style>

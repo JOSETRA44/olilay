@@ -1,0 +1,77 @@
+---
+import { site } from '../../config/site';
+import type { Locale } from '../../i18n/config';
+import { path } from '../../i18n/routes';
+import { useTranslations } from '../../i18n/ui';
+import Button from '../ui/Button.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale).home;
+---
+
+<section class="cta" aria-labelledby="cta-title">
+  <p class="cta__num">{t.ctaNum}</p>
+  <h2 class="cta__title display" id="cta-title">
+    {t.ctaTitle[0]}<br />{t.ctaTitle[1]} <em>{t.ctaAccent}</em>?
+  </h2>
+  <div class="cta__row">
+    <p class="cta__body">{t.ctaBody}</p>
+    <div class="cta__actions">
+      <Button href={path('contact', locale)} variant="solid">{t.ctaButton}</Button>
+      <a class="cta__mail" href={`mailto:${site.email}`}>{site.email}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta {
+    padding: var(--s-8) var(--pad-x) var(--s-7);
+    display: grid;
+    gap: var(--s-6);
+  }
+  .cta__num {
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+    color: var(--c-fg-soft);
+  }
+  .cta__title {
+    font-size: clamp(2.5rem, 9.5cqi, 9rem);
+  }
+  .cta__row {
+    display: grid;
+    gap: var(--s-5);
+  }
+  @media (min-width: 48rem) {
+    .cta__row {
+      grid-template-columns: 1fr auto;
+      align-items: end;
+    }
+  }
+  .cta__body {
+    max-width: 44ch;
+    font-size: clamp(1rem, 1.5cqi, 1.25rem);
+  }
+  .cta__actions {
+    display: grid;
+    gap: var(--s-3);
+    justify-items: start;
+  }
+  .cta__mail {
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    letter-spacing: var(--tracking-mono);
+    text-transform: uppercase;
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+  .cta__mail:hover {
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+  }
+</style>

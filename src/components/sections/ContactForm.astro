@@ -1,0 +1,274 @@
+---
+import { site } from '../../config/site';
+import { contactTopics } from '../../domain/contact/ContactMessage';
+import type { Locale } from '../../i18n/config';
+import { path } from '../../i18n/routes';
+import { useTranslations } from '../../i18n/ui';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale).contact;
+const f = t.form;
+
+// Messages the client script needs, serialized once.
+const clientMessages = {
+  status: t.status,
+  errors: t.errors,
+  sending: f.sending,
+  submit: f.submit,
+  email: site.email,
+};
+---
+
+<!--
+  Works without JS: native validation + urlencoded POST, the endpoint redirects to a result page.
+  With JS (scripts/contact-form.ts) it submits via fetch and shows inline status and field errors.
+-->
+<form class="form" id="contact-form" method="post" action="/api/contact" data-messages={JSON.stringify(clientMessages)}>
+  <input type="hidden" name="locale" value={locale} />
+  <input type="hidden" name="startedAt" value="" />
+  <div class="form__trap" aria-hidden="true">
+    <label for="f-website">{f.honeypot}</label>
+    <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+  </div>
+
+  <div class="form__row form__row--split">
+    <div class="form__field-wrap">
+      <label class="form__label" for="f-name">[01] {f.name}</label>
+      <input class="form__field" id="f-name" name="name" type="text" required minlength="2" maxlength="100" autocomplete="name" aria-describedby="e-name" />
+      <span class="form__hint" id="e-name" data-error-for="name">{f.required}</span>
+    </div>
+    <div class="form__field-wrap">
+      <label class="form__label" for="f-email">[02] {f.email}</label>
+      <input class="form__field" id="f-email" name="email" type="email" required maxlength="254" autocomplete="email" aria-describedby="e-email" />
+      <span class="form__hint" id="e-email" data-error-for="email">{f.required}</span>
+    </div>
+  </div>
+
+  <div class="form__row form__row--split">
+    <div class="form__field-wrap">
+      <label class="form__label" for="f-organization">[03] {f.organization}</label>
+      <input class="form__field" id="f-organization" name="organization" type="text" maxlength="120" autocomplete="organization" aria-describedby="e-organization" />
+      <span class="form__hint" id="e-organization" data-error-for="organization">{f.optional}</span>
+    </div>
+    <div class="form__field-wrap">
+      <label class="form__label" for="f-topic">[04] {f.topic}</label>
+      <select class="form__field" id="f-topic" name="topic" required aria-describedby="e-topic">
+        <option value="">{f.choose}</option>
+        {contactTopics.map((topic) => <option value={topic}>{t.topics[topic]}</option>)}
+      </select>
+      <span class="form__hint" id="e-topic" data-error-for="topic">{f.required}</span>
+    </div>
+  </div>
+
+  <div class="form__field-wrap">
+    <label class="form__label" for="f-message">[05] {f.message}</label>
+    <textarea class="form__field form__field--area" id="f-message" name="message" required minlength="20" maxlength="5000" placeholder={f.messagePlaceholder} aria-describedby="e-message"></textarea>
+    <span class="form__hint" id="e-message" data-error-for="message">{f.required}</span>
+  </div>
+
+  <div class="form__consent">
+    <input id="f-consent" name="consent" type="checkbox" required aria-describedby="e-consent" />
+    <label for="f-consent">
+      {f.consent} <a href={path('privacy', locale)}>{f.consentLink}</a>.
+    </label>
+    <span class="form__hint form__hint--left" id="e-consent" data-error-for="consent"></span>
+  </div>
+
+  <div class="form__status" id="form-status" role="status" aria-live="polite"></div>
+  <button class="form__submit" type="submit">{f.submit}</button>
+</form>
+
+<script>
+  import { initContactForm } from '../../scripts/contact-form';
+  initContactForm();
+</script>
+
+<style>
+  .form {
+    padding: var(--s-6) var(--pad-x);
+    display: grid;
+    gap: var(--s-5);
+    align-content: start;
+  }
+
+  .form__row--split {
+    display: grid;
+    gap: var(--s-5) var(--s-3);
+  }
+  @media (min-width: 30rem) {
+    .form__row--split {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .form__field-wrap {
+    display: grid;
+    gap: var(--s-2);
+    align-content: start;
+  }
+
+  .form__label {
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .form__hint {
+    font-family: var(--ff-mono);
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+    text-align: right;
+    color: var(--c-fg-soft);
+    min-height: 1em;
+  }
+  .form__hint--left {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+  .form__hint[data-invalid] {
+    color: var(--c-fg);
+    background: var(--c-danger);
+    color: var(--c-on-danger);
+    padding: 0.15rem var(--s-2);
+    text-align: left;
+  }
+
+  .form__field {
+    width: 100%;
+    min-width: 0;
+    padding: var(--s-3);
+    font-family: var(--ff-mono);
+    font-size: 0.875rem;
+    background: var(--c-bg);
+    color: var(--c-fg);
+    border: var(--bw-thick) solid var(--c-line);
+    border-radius: 0;
+    transition: box-shadow var(--dur-fast);
+  }
+  .form__field:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--bw-thick) var(--c-bg), 0 0 0 calc(var(--bw-thick) * 3) var(--c-accent);
+  }
+  .form__field[aria-invalid='true'] {
+    border-color: var(--c-danger);
+  }
+  .form__field--area {
+    resize: vertical;
+    min-height: 10rem;
+  }
+  select.form__field {
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--c-fg) 50%),
+      linear-gradient(-45deg, transparent 50%, var(--c-fg) 50%);
+    background-position:
+      calc(100% - 1.25rem) 50%,
+      calc(100% - 0.75rem) 50%;
+    background-size: 0.5rem 0.5rem;
+    background-repeat: no-repeat;
+    padding-right: 2.5rem;
+  }
+
+  .form__consent {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--s-2) var(--s-3);
+    align-items: start;
+    font-size: 0.9375rem;
+  }
+  .form__consent input {
+    appearance: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0.1rem 0 0;
+    border: var(--bw-thick) solid var(--c-line);
+    background: var(--c-bg);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .form__consent input:checked {
+    background: var(--c-accent);
+  }
+  .form__consent input:checked::after {
+    content: '';
+    width: 0.55rem;
+    height: 0.3rem;
+    border-left: 2px solid var(--c-on-accent);
+    border-bottom: 2px solid var(--c-on-accent);
+    rotate: -45deg;
+    translate: 0 -1px;
+  }
+  .form__consent a {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .form__trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .form__status {
+    display: none;
+    padding: var(--s-3);
+    border: var(--bw-thick) solid var(--c-line);
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+    line-height: 1.6;
+  }
+  .form__status[data-state='ok'] {
+    display: block;
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+    border-color: var(--c-accent);
+  }
+  .form__status[data-state='error'] {
+    display: block;
+    background: var(--c-danger);
+    color: var(--c-on-danger);
+    border-color: var(--c-danger);
+  }
+  .form__status :global(a) {
+    text-decoration: underline;
+  }
+
+  .form__submit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--s-4);
+    background: var(--c-fg);
+    color: var(--c-bg);
+    border: var(--bw-thick) solid var(--c-fg);
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    transition:
+      background var(--dur-fast),
+      color var(--dur-fast),
+      border-color var(--dur-fast);
+  }
+  .form__submit::after {
+    content: '→';
+  }
+  .form__submit:hover {
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+    border-color: var(--c-accent);
+  }
+  .form__submit:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+</style>

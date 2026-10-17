@@ -1,0 +1,138 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { Locale } from '../../i18n/config';
+import { productPath } from '../../i18n/routes';
+import { useTranslations } from '../../i18n/ui';
+
+interface Props {
+  locale: Locale;
+  products: CollectionEntry<'products'>[];
+}
+
+const { locale, products } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<!-- Hairline grid inherited from the reference mosaic: 1px gaps over a line-colored background -->
+<ul class="pgrid">
+  {
+    products.map((p, i) => (
+      <li class="pcard" data-reveal>
+        <a class="pcard__link" href={productPath(p.data.slug, locale)}>
+          <div class="pcard__top">
+            <span>[{String(i + 1).padStart(2, '0')}]</span>
+            <span class="pcard__status">{t.products.status[p.data.status]}</span>
+          </div>
+          <h3 class="pcard__name" style={`view-transition-name: product-${p.data.slug}`}>
+            {p.data.name}
+          </h3>
+          <p class="pcard__tagline">{p.data.tagline}</p>
+          <p class="pcard__summary">{p.data.summary}</p>
+          <span class="pcard__more">{t.products.details}</span>
+        </a>
+      </li>
+    ))
+  }
+  <li class="pcard pcard--upcoming" data-reveal>
+    <div class="pcard__top">
+      <span>[{String(products.length + 1).padStart(2, '0')}]</span>
+      <span>{t.products.status.development}</span>
+    </div>
+    <h3 class="pcard__name pcard__name--soft">{t.products.upcomingTitle}</h3>
+    <p class="pcard__summary">{t.products.upcomingBody}</p>
+  </li>
+</ul>
+
+<style>
+  .pgrid {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--bw);
+    background: var(--c-line);
+    border-bottom: var(--bw) solid var(--c-line);
+  }
+  @media (min-width: 48rem) {
+    .pgrid {
+      grid-template-columns: 1.6fr 1fr;
+    }
+  }
+
+  .pcard {
+    background: var(--c-bg);
+    min-height: 22rem;
+    display: grid;
+  }
+  .pcard__link,
+  .pcard--upcoming {
+    display: grid;
+    grid-template-rows: auto 1fr auto auto auto;
+    gap: var(--s-4);
+    padding: var(--s-5) var(--pad-x);
+  }
+  .pcard__link {
+    transition:
+      background var(--dur-base),
+      color var(--dur-base);
+  }
+  .pcard__link:hover {
+    background: var(--c-inverse-bg);
+    color: var(--c-inverse-fg);
+  }
+
+  .pcard__top {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+  }
+  .pcard__status {
+    padding: 0 var(--s-2);
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+  }
+
+  .pcard__name {
+    align-self: end;
+    font-family: var(--ff-display);
+    font-weight: 400;
+    font-size: clamp(2.5rem, 8cqi, 7rem);
+    line-height: 0.85;
+    letter-spacing: -0.045em;
+    text-transform: uppercase;
+  }
+  .pcard__name--soft {
+    font-size: clamp(1.75rem, 4cqi, 3rem);
+    color: var(--c-fg-soft);
+  }
+  .pcard__tagline {
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+  }
+  .pcard__summary {
+    max-width: 52ch;
+    line-height: 1.5;
+  }
+  .pcard__more {
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .pcard__more::after {
+    content: ' →';
+  }
+  .pcard--upcoming {
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--c-bg) 0 12px,
+      var(--c-surface) 12px 13px
+    );
+    color: var(--c-fg);
+  }
+</style>
