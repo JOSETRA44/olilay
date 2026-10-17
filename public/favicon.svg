@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .bg { fill: oklch(15% 0 0); }
+    .fg { fill: oklch(96% 0.005 90); }
+    @media (prefers-color-scheme: dark) { .bg { fill: oklch(94% 0.006 90); } .fg { fill: oklch(14.5% 0.004 260); } }
+  </style>
+  <rect class="bg" width="64" height="64"/>
+  <rect class="fg" x="14" y="14" width="36" height="36"/>
+  <rect fill="oklch(88% 0.22 125)" x="23" y="23" width="18" height="18"/>
+</svg>

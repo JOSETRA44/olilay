@@ -1,0 +1,106 @@
+/*
+ * Design tokens — derived from the reference's OKLCH palette and modular scale.
+ * Components consume semantic tokens (--c-*), never raw values, so both themes
+ * are defined in one place.
+ */
+:root {
+  /* Raw palette */
+  --paper: oklch(96% 0.005 90);
+  --ink: oklch(15% 0 0);
+  --night: oklch(14.5% 0.004 260);
+  --chalk: oklch(94% 0.006 90);
+  --lime: oklch(88% 0.22 125);
+  --lime-deep: oklch(52% 0.15 130);
+  --signal: oklch(64% 0.21 35);
+
+  /* Semantic — light (default) */
+  --c-bg: var(--paper);
+  --c-fg: var(--ink);
+  --c-fg-soft: oklch(15% 0 0 / 0.64);
+  --c-line: var(--ink);
+  --c-surface: oklch(93% 0.006 90);
+  --c-inverse-bg: var(--ink);
+  --c-inverse-fg: var(--paper);
+  --c-inverse-accent: var(--lime);
+  --c-accent: var(--lime);
+  --c-on-accent: var(--ink);
+  --c-accent-text: var(--lime-deep);
+  --c-danger: var(--signal);
+  --c-on-danger: var(--ink);
+  --c-focus: var(--ink);
+  color-scheme: light;
+
+  /* Typography */
+  --ff-display: 'Archivo Black', ui-sans-serif, system-ui, sans-serif;
+  --ff-body: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --ff-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+  --fs-mono: 0.75rem;
+  --fs-mono-sm: 0.6875rem;
+  --tracking-mono: 0.05em;
+  --tracking-display: -0.04em;
+
+  /* Modular spacing */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 5rem;
+  --s-9: 8rem;
+
+  /* Geometry */
+  --bw: 1px;
+  --bw-thick: 0.125rem;
+  --pad-x: var(--s-4);
+  --header-h: 3.5rem;
+  --measure: 62ch;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 150ms;
+  --dur-base: 300ms;
+  --dur-slow: 600ms;
+}
+
+@media (min-width: 48rem) {
+  :root { --pad-x: var(--s-5); }
+}
+@media (min-width: 80rem) {
+  :root { --pad-x: var(--s-6); }
+}
+@media (min-width: 120rem) {
+  :root { --pad-x: var(--s-7); }
+}
+
+/* Semantic — dark. Declared twice: system preference (no explicit choice) and explicit choice. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --c-bg: var(--night);
+    --c-fg: var(--chalk);
+    --c-fg-soft: oklch(94% 0.006 90 / 0.66);
+    --c-line: oklch(94% 0.006 90 / 0.85);
+    --c-surface: oklch(19% 0.005 260);
+    --c-inverse-bg: var(--chalk);
+    --c-inverse-fg: var(--night);
+    --c-inverse-accent: var(--lime-deep);
+    --c-accent-text: var(--lime);
+    --c-focus: var(--lime);
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --c-bg: var(--night);
+  --c-fg: var(--chalk);
+  --c-fg-soft: oklch(94% 0.006 90 / 0.66);
+  --c-line: oklch(94% 0.006 90 / 0.85);
+  --c-surface: oklch(19% 0.005 260);
+  --c-inverse-bg: var(--chalk);
+  --c-inverse-fg: var(--night);
+  --c-inverse-accent: var(--lime-deep);
+  --c-accent-text: var(--lime);
+  --c-focus: var(--lime);
+  color-scheme: dark;
+}
