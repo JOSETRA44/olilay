@@ -1,0 +1,127 @@
+---
+import '@fontsource-variable/archivo';
+import '@fontsource/archivo-black/400.css';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/utilities.css';
+
+// Preloaded so the display headline doesn't reflow when the web font arrives
+import archivoBlackUrl from '@fontsource/archivo-black/files/archivo-black-latin-400-normal.woff2?url';
+import archivoUrl from '@fontsource-variable/archivo/files/archivo-latin-wght-normal.woff2?url';
+import monoUrl from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
+import Footer from '../components/layout/Footer.astro';
+import Header from '../components/layout/Header.astro';
+import { site } from '../config/site';
+import { defaultLocale, locales, localeMeta, type Locale } from '../i18n/config';
+import type { Alternates } from '../i18n/routes';
+import { useTranslations } from '../i18n/ui';
+
+interface Props {
+  locale: Locale;
+  alternates: Alternates;
+  /** Page title; the brand is appended automatically. Omit on the home page. */
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+  ogType?: 'website' | 'article';
+  structuredData?: Record<string, unknown>[];
+}
+
+const { locale, alternates, title, description, noindex = false, ogType = 'website', structuredData = [] } = Astro.props;
+const t = useTranslations(locale);
+
+const fullTitle = title ? `${title} — ${site.name}` : t.meta.defaultTitle;
+const metaDescription = description ?? t.meta.defaultDescription;
+const canonical = new URL(alternates[locale], site.url).href;
+const ogImage = new URL('/og.png', site.url).href;
+---
+
+<!doctype html>
+<html lang={localeMeta[locale].htmlLang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <link rel="preload" href={archivoBlackUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={archivoUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={monoUrl} as="font" type="font/woff2" crossorigin />
+    <meta name="description" content={metaDescription} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+
+    {locales.map((l) => <link rel="alternate" hreflang={localeMeta[l].htmlLang} href={new URL(alternates[l], site.url).href} />)}
+    <link rel="alternate" hreflang="x-default" href={new URL(alternates[defaultLocale], site.url).href} />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={metaDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content={localeMeta[locale].ogLocale} />
+    {locales.filter((l) => l !== locale).map((l) => <meta property="og:locale:alternate" content={localeMeta[l].ogLocale} />)}
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="theme-color" content="#f4f3ef" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0b0c0e" media="(prefers-color-scheme: dark)" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Applied before first paint to avoid a flash of the wrong theme -->
+    <script is:inline>
+      (function () {
+        var root = document.documentElement;
+        root.classList.add('js');
+        var stored = null;
+        try {
+          stored = localStorage.getItem('olilay-theme');
+        } catch (e) {}
+        var dark = stored ? stored === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+        root.dataset.theme = dark ? 'dark' : 'light';
+      })();
+    </script>
+
+    {structuredData.map((data) => <script type="application/ld+json" set:html={JSON.stringify(data)} />)}
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t.a11y.skip}</a>
+    <Header locale={locale} alternates={alternates} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer locale={locale} alternates={alternates} />
+
+    <script>
+      import { initReveal } from '../scripts/reveal';
+      initReveal();
+    </script>
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: fixed;
+    top: var(--s-2);
+    left: var(--s-2);
+    z-index: 300;
+    padding: var(--s-3) var(--s-4);
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+    translate: 0 -200%;
+  }
+  .skip-link:focus-visible {
+    translate: 0 0;
+  }
+  main:focus {
+    outline: none;
+  }
+</style>
