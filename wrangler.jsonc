@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "olilay-web",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2026-10-01",
+  // Public, non-secret configuration. Secrets (RESEND_API_KEY) go through
+  // `wrangler secret put` in production and `.dev.vars` locally.
+  "vars": {
+    "CONTACT_TO_EMAIL": "ventas@olilay.com",
+    "CONTACT_FROM_EMAIL": "Olilay Web <web@olilay.com>"
+  }
+  // Uncomment once the D1 database exists (see docs/database.md):
+  // "d1_databases": [
+  //   { "binding": "DB", "database_name": "olilay-db", "database_id": "<id>", "migrations_dir": "migrations" }
+  // ]
+}
