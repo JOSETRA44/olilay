@@ -1,0 +1,130 @@
+---
+import CtaBand from '../components/sections/CtaBand.astro';
+import PageHead from '../components/ui/PageHead.astro';
+import SectionHead from '../components/ui/SectionHead.astro';
+import type { Locale } from '../i18n/config';
+import { alternatesFor } from '../i18n/routes';
+import { useTranslations } from '../i18n/ui';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const c = useTranslations(locale).company;
+---
+
+<BaseLayout locale={locale} alternates={alternatesFor('company')} title={c.title} description={c.description}>
+  <PageHead num={c.num} lines={c.heading} accent={c.headingAccent} intro={c.intro} />
+
+  <section aria-labelledby="what-title">
+    <SectionHead num={c.whatNum} title={c.whatTitle} id="what-title" />
+    <div class="what">
+      {
+        c.what.map((paragraph, i) => (
+          <p data-reveal>
+            <span class="what__num">[{String.fromCharCode(65 + i)}]</span>
+            {paragraph}
+          </p>
+        ))
+      }
+    </div>
+  </section>
+
+  <section aria-labelledby="principles-title">
+    <SectionHead
+      num={c.principlesNum}
+      title={c.principlesTitle}
+      count={`${String(c.principles.length).padStart(2, '0')}`}
+      id="principles-title"
+    />
+    <ol class="principles">
+      {
+        c.principles.map((item, i) => (
+          <li data-reveal>
+            <span class="principles__num">{String(i + 1).padStart(2, '0')}</span>
+            <h3>{item.title}</h3>
+            <p>{item.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <CtaBand locale={locale} />
+</BaseLayout>
+
+<style>
+  .what {
+    display: grid;
+    gap: var(--bw);
+    background: var(--c-line);
+    border-bottom: var(--bw) solid var(--c-line);
+  }
+  @media (min-width: 48rem) {
+    .what {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .what p {
+    background: var(--c-bg);
+    padding: var(--s-6) var(--pad-x);
+    font-size: clamp(1.0625rem, 1.6cqi, 1.375rem);
+    line-height: 1.45;
+  }
+  .what__num {
+    display: block;
+    margin-bottom: var(--s-4);
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    letter-spacing: var(--tracking-mono);
+    color: var(--c-fg-soft);
+  }
+
+  .principles {
+    list-style: none;
+    padding: 0;
+  }
+  .principles li {
+    display: grid;
+    gap: var(--s-3);
+    padding: var(--s-6) var(--pad-x);
+    border-bottom: var(--bw) solid var(--c-line);
+    transition:
+      background var(--dur-base),
+      color var(--dur-base);
+  }
+  @media (min-width: 64rem) {
+    .principles li {
+      grid-template-columns: 6rem 1fr 1fr;
+      align-items: baseline;
+      gap: var(--s-6);
+    }
+  }
+  .principles li:hover {
+    background: var(--c-inverse-bg);
+    color: var(--c-inverse-fg);
+  }
+  .principles li:hover .principles__num {
+    color: var(--c-inverse-accent);
+  }
+  .principles__num {
+    font-family: var(--ff-mono);
+    font-size: clamp(1rem, 2cqi, 1.5rem);
+    font-weight: 500;
+  }
+  .principles h3 {
+    font-family: var(--ff-display);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4.5cqi, 3.75rem);
+    line-height: 0.9;
+    letter-spacing: var(--tracking-display);
+    text-transform: uppercase;
+  }
+  .principles p {
+    max-width: 44ch;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+  }
+</style>

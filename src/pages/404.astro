@@ -1,0 +1,63 @@
+---
+import Button from '../components/ui/Button.astro';
+import { alternatesFor, path } from '../i18n/routes';
+import { useTranslations } from '../i18n/ui';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// A single static 404 serves every locale, so it shows both languages.
+const es = useTranslations('es').notFound;
+const en = useTranslations('en').notFound;
+---
+
+<BaseLayout locale="es" alternates={alternatesFor('home')} title={`404 — ${es.title}`} noindex>
+  <section class="nf">
+    <p class="nf__num">[404] / {es.title} · <span lang="en">{en.title}</span></p>
+    <h1 class="nf__code display">4<em>0</em>4</h1>
+    <div class="nf__cols">
+      <div>
+        <p>{es.body}</p>
+        <Button href={path('home', 'es')} variant="solid">{es.back}</Button>
+      </div>
+      <div lang="en">
+        <p>{en.body}</p>
+        <Button href={path('home', 'en')}>{en.back}</Button>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    min-height: 90svh;
+    padding: calc(var(--header-h) + var(--s-7)) var(--pad-x) var(--s-7);
+    display: grid;
+    align-content: space-between;
+    gap: var(--s-6);
+    border-bottom: var(--bw) solid var(--c-line);
+  }
+  .nf__num {
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+    color: var(--c-fg-soft);
+  }
+  .nf__code {
+    font-size: clamp(6rem, 38cqi, 32rem);
+    line-height: 0.8;
+  }
+  .nf__cols {
+    display: grid;
+    gap: var(--s-6);
+  }
+  @media (min-width: 48rem) {
+    .nf__cols {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .nf__cols > div {
+    display: grid;
+    gap: var(--s-4);
+    justify-items: start;
+  }
+</style>

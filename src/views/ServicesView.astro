@@ -1,0 +1,189 @@
+---
+import CtaBand from '../components/sections/CtaBand.astro';
+import Button from '../components/ui/Button.astro';
+import PageHead from '../components/ui/PageHead.astro';
+import type { Locale } from '../i18n/config';
+import { alternatesFor, path } from '../i18n/routes';
+import { useTranslations } from '../i18n/ui';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getServices } from '../lib/content';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const s = t.services;
+const services = await getServices(locale);
+---
+
+<BaseLayout locale={locale} alternates={alternatesFor('services')} title={s.title} description={s.description}>
+  <PageHead num={s.num} lines={[s.heading]} intro={s.intro}>
+    <nav class="toc" aria-label={s.title}>
+      {
+        services.map((svc, i) => (
+          <a href={`#${svc.data.key}`}>
+            <span>{String(i + 1).padStart(2, '0')}</span> {svc.data.title}
+          </a>
+        ))
+      }
+    </nav>
+  </PageHead>
+
+  {
+    services.map((svc, i) => (
+      <section class="svc" id={svc.data.key} aria-labelledby={`${svc.data.key}-title`}>
+        <p class="svc__num">{String(i + 1).padStart(2, '0')}</p>
+        <div class="svc__main">
+          <h2 class="svc__title" id={`${svc.data.key}-title`}>
+            {svc.data.title}
+          </h2>
+          <p class="svc__summary">{svc.data.summary}</p>
+        </div>
+        <div class="svc__aside" data-reveal>
+          <div>
+            <h3 class="svc__label">{s.forWhom}</h3>
+            <p>{svc.data.forWhom}</p>
+          </div>
+          <div>
+            <h3 class="svc__label">{s.includes}</h3>
+            <ul class="svc__list">
+              {svc.data.includes.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </div>
+          <Button href={`${path('contact', locale)}?tema=${svc.data.key}`}>{s.ask}</Button>
+        </div>
+      </section>
+    ))
+  }
+
+  <section class="other" aria-labelledby="other-title">
+    <h2 class="other__title" id="other-title">{s.notListed}</h2>
+    <p>{s.notListedBody}</p>
+  </section>
+
+  <CtaBand locale={locale} />
+</BaseLayout>
+
+<style>
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    margin-top: var(--s-3);
+  }
+  .toc a {
+    padding: var(--s-2) var(--s-3);
+    border: var(--bw) solid var(--c-line);
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono-sm);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+    transition:
+      background var(--dur-fast),
+      color var(--dur-fast);
+  }
+  .toc a span {
+    opacity: 0.55;
+  }
+  .toc a:hover {
+    background: var(--c-fg);
+    color: var(--c-bg);
+  }
+
+  .svc {
+    display: grid;
+    gap: var(--s-5);
+    padding: var(--s-7) var(--pad-x);
+    border-bottom: var(--bw) solid var(--c-line);
+  }
+  @media (min-width: 64rem) {
+    .svc {
+      grid-template-columns: 6rem 1.3fr 1fr;
+      gap: var(--s-6);
+    }
+  }
+  .svc__num {
+    font-family: var(--ff-mono);
+    font-size: clamp(1rem, 2cqi, 1.5rem);
+    font-weight: 500;
+  }
+  .svc__title {
+    font-family: var(--ff-display);
+    font-weight: 400;
+    font-size: clamp(2rem, 5.5cqi, 4.75rem);
+    line-height: 0.9;
+    letter-spacing: var(--tracking-display);
+    text-transform: uppercase;
+    text-wrap: balance;
+    margin-bottom: var(--s-5);
+  }
+  .svc__summary {
+    max-width: 52ch;
+    font-size: clamp(1.0625rem, 1.5cqi, 1.25rem);
+    line-height: 1.45;
+  }
+
+  .svc__aside {
+    display: grid;
+    gap: var(--s-5);
+    align-content: start;
+    padding-top: var(--s-4);
+    border-top: var(--bw) solid var(--c-line);
+  }
+  @media (min-width: 64rem) {
+    .svc__aside {
+      border-top: 0;
+      border-left: var(--bw) solid var(--c-line);
+      padding: 0 0 0 var(--s-6);
+    }
+  }
+  .svc__aside :global(.btn) {
+    justify-self: start;
+  }
+  .svc__label {
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono-sm);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--c-fg-soft);
+    margin-bottom: var(--s-2);
+  }
+  .svc__list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s-2);
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+  }
+  .svc__list li::before {
+    content: '↳ ';
+    opacity: 0.5;
+  }
+
+  .other {
+    padding: var(--s-7) var(--pad-x);
+    display: grid;
+    gap: var(--s-3);
+    background: var(--c-surface);
+    border-bottom: var(--bw) solid var(--c-line);
+  }
+  .other__title {
+    font-family: var(--ff-display);
+    font-weight: 400;
+    font-size: clamp(1.5rem, 3.5cqi, 2.5rem);
+    line-height: 0.95;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+  }
+  .other p {
+    max-width: 56ch;
+  }
+</style>

@@ -1,0 +1,24 @@
+---
+import CtaBand from '../components/sections/CtaBand.astro';
+import ProductGrid from '../components/sections/ProductGrid.astro';
+import PageHead from '../components/ui/PageHead.astro';
+import type { Locale } from '../i18n/config';
+import { alternatesFor } from '../i18n/routes';
+import { useTranslations } from '../i18n/ui';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getProducts } from '../lib/content';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const p = useTranslations(locale).products;
+const products = await getProducts(locale);
+---
+
+<BaseLayout locale={locale} alternates={alternatesFor('products')} title={p.title} description={p.description}>
+  <PageHead num={p.num} lines={[p.heading]} intro={p.intro} />
+  <ProductGrid locale={locale} products={products} />
+  <CtaBand locale={locale} />
+</BaseLayout>

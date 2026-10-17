@@ -1,0 +1,311 @@
+---
+import Button from '../components/ui/Button.astro';
+import Marquee from '../components/ui/Marquee.astro';
+import SectionHead from '../components/ui/SectionHead.astro';
+import CtaBand from '../components/sections/CtaBand.astro';
+import ProductGrid from '../components/sections/ProductGrid.astro';
+import ServicesAccordion from '../components/sections/ServicesAccordion.astro';
+import { site } from '../config/site';
+import type { Locale } from '../i18n/config';
+import { alternatesFor, path } from '../i18n/routes';
+import { useTranslations } from '../i18n/ui';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getProducts, getServices } from '../lib/content';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const h = t.home;
+const [products, services] = await Promise.all([getProducts(locale), getServices(locale)]);
+
+const structuredData = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: site.name,
+    url: site.url,
+    email: site.email,
+    logo: `${site.url}/apple-touch-icon.png`,
+    description: t.meta.defaultDescription,
+    owns: products.map((p) => ({
+      '@type': 'SoftwareApplication',
+      name: p.data.name,
+      url: p.data.url,
+      applicationCategory: 'EducationalApplication',
+    })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: site.name,
+    url: site.url,
+    inLanguage: ['es', 'en'],
+  },
+];
+---
+
+<BaseLayout locale={locale} alternates={alternatesFor('home')} structuredData={structuredData}>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero__meta">
+      {
+        [h.meta, h.meta2].map(([num, a, b]) => (
+          <p>
+            <span>{num}</span>
+            <strong>{a}</strong>
+            {b}
+          </p>
+        ))
+      }
+    </div>
+
+    <h1 class="hero__title display" id="hero-title">
+      {h.titleLines[0]}<sup aria-hidden="true">(01)</sup><br />
+      {h.titleLines[1]}<br />
+      <em>{h.titleAccent}</em>.
+    </h1>
+
+    <div class="hero__sub">
+      <p class="hero__lede">{h.lede}</p>
+      <div class="hero__ctas">
+        <Button href={path('services', locale)} variant="solid">{h.ctaPrimary}</Button>
+        <Button href={path('contact', locale)}>{h.ctaSecondary}</Button>
+      </div>
+    </div>
+  </section>
+
+  <Marquee items={h.marquee} />
+
+  <section aria-labelledby="lines-title">
+    <SectionHead num={h.linesNum} title={h.linesTitle} count={h.linesCount} id="lines-title" />
+    <div class="lines">
+      {
+        h.lines.map((line, i) => (
+          <article class="lines__item" data-reveal>
+            <p class="lines__num">{line.num}</p>
+            <h3 class="lines__title">{line.title}</h3>
+            <p class="lines__body">{line.body}</p>
+            <a class="lines__link" href={path(i === 0 ? 'products' : 'services', locale)}>
+              {line.link}
+            </a>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section aria-labelledby="products-title">
+    <SectionHead
+      num={h.productsNum}
+      title={h.productsTitle}
+      count={`${String(products.length).padStart(2, '0')} ${t.nav.products}`}
+      id="products-title"
+    />
+    <ProductGrid locale={locale} products={products} />
+  </section>
+
+  <section aria-labelledby="services-title">
+    <SectionHead
+      num={h.servicesNum}
+      title={h.servicesTitle}
+      count={`${String(services.length).padStart(2, '0')} ${t.services.count}`}
+      id="services-title"
+    />
+    <ServicesAccordion locale={locale} services={services} />
+  </section>
+
+  <section aria-labelledby="process-title">
+    <SectionHead num={h.processNum} title={h.processTitle} count={h.processCount} id="process-title" />
+    <ol class="process">
+      {
+        h.process.map((step, i) => (
+          <li class="process__step" data-reveal>
+            <span class="process__num">{String(i + 1).padStart(2, '0')}</span>
+            <h3 class="process__title">{step.title}</h3>
+            <p class="process__body">{step.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <CtaBand locale={locale} />
+</BaseLayout>
+
+<style>
+  .hero {
+    min-height: 100svh;
+    padding: var(--header-h) var(--pad-x) 0;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: var(--s-6);
+    border-bottom: var(--bw) solid var(--c-line);
+  }
+
+  .hero__meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s-4);
+    padding-top: var(--s-5);
+  }
+  .hero__meta p {
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+    line-height: 1.6;
+  }
+  .hero__meta span {
+    display: block;
+    color: var(--c-fg-soft);
+    margin-bottom: var(--s-1);
+  }
+  .hero__meta strong {
+    display: block;
+    font-weight: 500;
+  }
+
+  .hero__title {
+    align-self: center;
+    /* Bounded by width (longest word must fit) and height (title + lede fit in one screen) */
+    font-size: clamp(3rem, min(14cqi, 19svh), 20rem);
+    line-height: 0.92;
+  }
+  .hero__title sup {
+    font-family: var(--ff-mono);
+    font-size: 0.16em;
+    font-weight: 400;
+    vertical-align: top;
+    margin-left: 0.2em;
+    letter-spacing: 0;
+  }
+
+  .hero__sub {
+    display: grid;
+    gap: var(--s-5);
+    padding-bottom: var(--s-5);
+  }
+  @media (min-width: 48rem) {
+    .hero__sub {
+      grid-template-columns: 2fr 1fr;
+      align-items: end;
+    }
+  }
+  .hero__lede {
+    max-width: 46ch;
+    font-size: clamp(1.0625rem, 1.5cqi, 1.3125rem);
+    line-height: 1.4;
+  }
+  .hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+  }
+  @media (min-width: 48rem) {
+    .hero__ctas {
+      justify-content: flex-end;
+    }
+  }
+
+  /* Two lines of activity */
+  .lines {
+    display: grid;
+    gap: var(--bw);
+    background: var(--c-line);
+    border-bottom: var(--bw) solid var(--c-line);
+  }
+  @media (min-width: 48rem) {
+    .lines {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .lines__item {
+    background: var(--c-bg);
+    padding: var(--s-6) var(--pad-x);
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: var(--s-4);
+  }
+  .lines__num {
+    font-family: var(--ff-mono);
+    font-size: clamp(1rem, 2cqi, 1.5rem);
+    font-weight: 500;
+  }
+  .lines__title {
+    font-family: var(--ff-display);
+    font-weight: 400;
+    font-size: clamp(1.75rem, 4.5cqi, 3.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    text-transform: uppercase;
+  }
+  .lines__body {
+    max-width: 48ch;
+    line-height: 1.5;
+  }
+  .lines__link {
+    justify-self: start;
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: var(--bw-thick) solid var(--c-accent);
+    padding-bottom: 2px;
+  }
+  .lines__link::after {
+    content: ' →';
+  }
+  .lines__link:hover {
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+  }
+
+  /* Process */
+  .process {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--bw);
+    background: var(--c-line);
+    border-bottom: var(--bw) solid var(--c-line);
+  }
+  @media (min-width: 40rem) {
+    .process {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 64rem) {
+    .process {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  .process__step {
+    background: var(--c-bg);
+    padding: var(--s-5) var(--pad-x) var(--s-6);
+    display: grid;
+    align-content: start;
+    gap: var(--s-3);
+    min-height: 16rem;
+  }
+  .process__num {
+    font-family: var(--ff-display);
+    font-size: clamp(3rem, 6cqi, 5rem);
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--c-fg);
+    margin-bottom: var(--s-4);
+  }
+  .process__title {
+    font-family: var(--ff-display);
+    font-weight: 400;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+  }
+  .process__body {
+    line-height: 1.5;
+    max-width: 36ch;
+  }
+</style>

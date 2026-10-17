@@ -1,0 +1,52 @@
+---
+import Button from '../components/ui/Button.astro';
+import PageHead from '../components/ui/PageHead.astro';
+import { site } from '../config/site';
+import type { Locale } from '../i18n/config';
+import { alternatesFor, path } from '../i18n/routes';
+import { useTranslations } from '../i18n/ui';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+/** Landing pages for the no-JS form flow (the endpoint redirects here). */
+interface Props {
+  locale: Locale;
+  result: 'sent' | 'error';
+}
+
+const { locale, result } = Astro.props;
+const t = useTranslations(locale);
+const copy = result === 'sent' ? t.contact.sent : t.contact.failed;
+---
+
+<BaseLayout
+  locale={locale}
+  alternates={alternatesFor(result === 'sent' ? 'contactSent' : 'contactError')}
+  title={copy.title}
+  noindex
+>
+  <PageHead num={t.contact.num} lines={[copy.heading]} accent={copy.headingAccent} intro={copy.body}>
+    <div class="actions">
+      {
+        result === 'sent' ? (
+          <Button href={path('home', locale)}>{t.contact.sent.back}</Button>
+        ) : (
+          <>
+            <Button href={path('contact', locale)} variant="solid">
+              {t.contact.failed.retry}
+            </Button>
+            <Button href={`mailto:${site.email}`}>{site.email}</Button>
+          </>
+        )
+      }
+    </div>
+  </PageHead>
+</BaseLayout>
+
+<style>
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    margin-bottom: var(--s-7);
+  }
+</style>

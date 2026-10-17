@@ -1,0 +1,239 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import CtaBand from '../components/sections/CtaBand.astro';
+import Button from '../components/ui/Button.astro';
+import { site } from '../config/site';
+import type { Locale } from '../i18n/config';
+import { path, productAlternates } from '../i18n/routes';
+import { useTranslations } from '../i18n/ui';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+interface Props {
+  locale: Locale;
+  product: CollectionEntry<'products'>;
+}
+
+const { locale, product } = Astro.props;
+const t = useTranslations(locale);
+const p = t.products;
+const d = product.data;
+const { Content } = await render(product);
+const host = new URL(d.url).host;
+
+const structuredData = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: d.name,
+    url: d.url,
+    description: d.summary,
+    applicationCategory: 'EducationalApplication',
+    operatingSystem: 'Android',
+    publisher: { '@type': 'Organization', name: site.name, url: site.url },
+  },
+];
+---
+
+<BaseLayout
+  locale={locale}
+  alternates={productAlternates(d.slug)}
+  title={`${d.name} — ${d.tagline}`}
+  description={d.summary}
+  structuredData={structuredData}
+>
+  <article>
+    <header class="pd-head">
+      <a class="pd-head__crumb" href={path('products', locale)}>↳ {p.back}</a>
+      <h1 class="pd-head__name" style={`view-transition-name: product-${d.slug}`}>{d.name}</h1>
+      <p class="pd-head__tagline">{d.tagline}</p>
+
+      <dl class="pd-meta">
+        <div><dt>{p.statusLabel}</dt><dd><mark>{p.status[d.status]}</mark></dd></div>
+        <div><dt>{p.category}</dt><dd>{d.category}</dd></div>
+        <div><dt>{p.platforms}</dt><dd>{d.platforms.join(' · ')}</dd></div>
+      </dl>
+
+      <div class="pd-head__actions">
+        <Button href={d.url} variant="solid" icon="external">
+          {p.visit} — {host}<span class="u-sr"> {t.a11y.external}</span>
+        </Button>
+      </div>
+    </header>
+
+    <div class="pd-body">
+      <p class="pd-body__note">{d.name}: {p.independent}.</p>
+      <div class="prose">
+        <p class="pd-body__lead">{d.summary}</p>
+        <Content />
+      </div>
+    </div>
+
+    <section aria-labelledby="features-title">
+      <h2 class="pd-features__title" id="features-title">{p.featuresTitle}</h2>
+      <ul class="pd-features">
+        {
+          d.features.map((feature, i) => (
+            <li class="pd-feature" data-reveal>
+              <span class="pd-feature__num">
+                {String(i + 1).padStart(2, '0')}
+                {feature.beta && <span class="pd-feature__beta">{p.betaFeature}</span>}
+              </span>
+              <h3>{feature.title}</h3>
+              <p>{feature.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </article>
+
+  <CtaBand locale={locale} />
+</BaseLayout>
+
+<style>
+  .pd-head {
+    padding: calc(var(--header-h) + var(--s-7)) var(--pad-x) var(--s-6);
+    border-bottom: var(--bw) solid var(--c-line);
+    display: grid;
+    gap: var(--s-5);
+  }
+  .pd-head__crumb {
+    justify-self: start;
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+    color: var(--c-fg-soft);
+  }
+  .pd-head__crumb:hover {
+    color: var(--c-fg);
+  }
+  .pd-head__name {
+    font-family: var(--ff-display);
+    font-weight: 400;
+    font-size: clamp(3.5rem, 17cqi, 16rem);
+    line-height: 0.8;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+  }
+  .pd-head__tagline {
+    font-family: var(--ff-mono);
+    font-size: clamp(0.8125rem, 1.2cqi, 1rem);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+  }
+
+  .pd-meta {
+    display: grid;
+    gap: var(--s-3);
+    border-block: var(--bw) solid var(--c-line);
+    padding-block: var(--s-3);
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+  }
+  @media (min-width: 48rem) {
+    .pd-meta {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .pd-meta dt {
+    color: var(--c-fg-soft);
+    margin-bottom: var(--s-1);
+  }
+  .pd-meta mark {
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+    padding: 0 var(--s-2);
+  }
+  .pd-head__actions :global(.btn) {
+    white-space: normal;
+  }
+
+  .pd-body {
+    display: grid;
+    gap: var(--s-5);
+    padding: var(--s-7) var(--pad-x);
+    border-bottom: var(--bw) solid var(--c-line);
+  }
+  @media (min-width: 64rem) {
+    .pd-body {
+      grid-template-columns: 1fr 2fr;
+    }
+  }
+  .pd-body__note {
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+    color: var(--c-fg-soft);
+    max-width: 30ch;
+  }
+  .pd-body__lead {
+    font-size: clamp(1.25rem, 2cqi, 1.625rem);
+    line-height: 1.35;
+  }
+
+  .pd-features__title {
+    padding: var(--s-7) var(--pad-x) var(--s-5);
+    border-bottom: var(--bw) solid var(--c-line);
+    font-family: var(--ff-display);
+    font-weight: 400;
+    font-size: clamp(2rem, 6cqi, 4.5rem);
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+  .pd-features {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--bw);
+    background: var(--c-line);
+    border-bottom: var(--bw) solid var(--c-line);
+  }
+  @media (min-width: 40rem) {
+    .pd-features {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (min-width: 72rem) {
+    .pd-features {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  .pd-feature {
+    background: var(--c-bg);
+    padding: var(--s-5) var(--pad-x);
+    display: grid;
+    align-content: start;
+    gap: var(--s-3);
+    min-height: 12rem;
+  }
+  .pd-feature__num {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    letter-spacing: var(--tracking-mono);
+    text-transform: uppercase;
+    color: var(--c-fg-soft);
+  }
+  .pd-feature__beta {
+    padding: 0 var(--s-2);
+    border: var(--bw) solid var(--c-line);
+    color: var(--c-fg);
+  }
+  .pd-feature h3 {
+    font-family: var(--ff-display);
+    font-weight: 400;
+    font-size: 1.375rem;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+  }
+  .pd-feature p {
+    line-height: 1.5;
+  }
+</style>

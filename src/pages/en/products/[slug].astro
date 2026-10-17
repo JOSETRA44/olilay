@@ -1,0 +1,14 @@
+---
+import type { GetStaticPaths } from 'astro';
+import ProductDetailView from '../../../views/ProductDetailView.astro';
+import { getProducts } from '../../../lib/content';
+
+export const getStaticPaths = (async () => {
+  const products = await getProducts('en');
+  return products.map((product) => ({ params: { slug: product.data.slug }, props: { product } }));
+}) satisfies GetStaticPaths;
+
+const { product } = Astro.props;
+---
+
+<ProductDetailView locale="en" product={product} />

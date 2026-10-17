@@ -1,0 +1,90 @@
+---
+import { render } from 'astro:content';
+import PageHead from '../components/ui/PageHead.astro';
+import { site } from '../config/site';
+import type { Locale } from '../i18n/config';
+import { alternatesFor } from '../i18n/routes';
+import { useTranslations } from '../i18n/ui';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getLegalPage } from '../lib/content';
+
+interface Props {
+  locale: Locale;
+  page: 'privacy' | 'legal-notice';
+}
+
+const { locale, page } = Astro.props;
+const t = useTranslations(locale);
+const entry = await getLegalPage(locale, page);
+const { Content } = await render(entry);
+const updated = entry.data.updated.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+const holder = site.legal;
+const holderRows = [holder.holderName, holder.taxId, holder.address, holder.jurisdiction].filter(Boolean);
+---
+
+<BaseLayout
+  locale={locale}
+  alternates={alternatesFor(page === 'privacy' ? 'privacy' : 'legal')}
+  title={entry.data.title}
+  description={entry.data.description}
+>
+  <PageHead num={`[—] / ${t.footer.legal}`} lines={[entry.data.title]} />
+  <div class="legal">
+    <aside class="legal__meta">
+      <p>{t.legal.updated}</p>
+      <p><time datetime={entry.data.updated.toISOString().slice(0, 10)}>{updated}</time></p>
+    </aside>
+    <div class="prose">
+      {
+        holderRows.length > 0 ? (
+          <ul class="legal__holder">
+            {holderRows.map((row) => (
+              <li>{row}</li>
+            ))}
+          </ul>
+        ) : (
+          <p class="legal__pending">{t.legal.pendingHolder}</p>
+        )
+      }
+      <Content />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .legal {
+    display: grid;
+    gap: var(--s-5);
+    padding: var(--s-6) var(--pad-x) var(--s-8);
+    border-bottom: var(--bw) solid var(--c-line);
+  }
+  @media (min-width: 64rem) {
+    .legal {
+      grid-template-columns: 1fr 2.5fr;
+    }
+  }
+  .legal__meta {
+    font-family: var(--ff-mono);
+    font-size: var(--fs-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-mono);
+  }
+  .legal__meta p:first-child {
+    color: var(--c-fg-soft);
+  }
+  .legal__pending {
+    padding: var(--s-3) var(--s-4);
+    border: var(--bw-thick) solid var(--c-line);
+    background: var(--c-surface);
+    font-family: var(--ff-mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+  }
+  .legal__holder {
+    list-style: none;
+    padding: var(--s-3) var(--s-4) !important;
+    border: var(--bw-thick) solid var(--c-line);
+    font-family: var(--ff-mono);
+    font-size: 0.8125rem;
+  }
+</style>
